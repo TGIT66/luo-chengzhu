@@ -60,7 +60,8 @@ luo-chengzhu/
 
 > ⚠️ `workers.dev` 在国内被阻断，**只有更新时需要开一次加速器**，日常玩游戏不用。
 
-1. 改完代码，把 `sw.js` 里的 `CACHE = 'lcz-v1'` 改成 `lcz-v2`（**每次都要 +1**，否则手机永远命中旧缓存，改了像没改）。
+1. 改完代码，把 `sw.js` 里 `CACHE = 'lcz-vN'` 的 N **+1**（当前是 `lcz-v3`，下次就填 `lcz-v4`）。
+   **每次都要加**，否则手机永远命中旧缓存，改了像没改。
 2. 先在手机上旧版游戏里**导出存档**：右上角 💾 → 导出 → 复制 → 存到微信文件传输助手。
 3. 电脑上重新部署：把 `luo-chengzhu` 文件夹拖到 <https://cloudflare.com/drop>。
 4. 上传完成后**立刻点页面上的 Claim 认领**，登录免费 Cloudflare 账号把它变成永久网址。
@@ -83,10 +84,13 @@ luo-chengzhu/
 
 全部集中在 `game.js` 顶部：
 
-- `PRODUCERS`：生产单位的名称、图标、基础成本、成本增长率、每秒产出。
-- `UPGRADES`：升级项。`type` 支持 `clickAdd`（点击加法）、`clickMult`（点击乘法）、`globalMult`（全局产出乘法）。
+- `PRODUCERS`：战力提升各档的名称、图标、基础成本、成本增长率、每秒产出。**直接往数组里追加即可**，解锁门槛会自动跟着算。
+- `UPGRADES`：功法与秘宝。`type` 支持 `clickAdd`（点击加法）、`clickMult`（点击乘法）、`globalMult`（全局产出乘法）。
 - `REALMS`：境界名称与解锁阈值。**这里的境界名是占位，请按你自己的记忆校对修改。**
-- `OFFLINE_EFFICIENCY` / `OFFLINE_CAP_HOURS`：离线收益效率与上限。
+- `OFFLINE_TIERS`：离线时长各档的 `hours` / `unlock`（开启门槛）/ `costPct`（消耗当前基因元能的比例）。
+- `OFFLINE_EFFICIENCY`：离线收益效率（当前 1 = 100%）。
+- `revealAt()`：列表项的渐进解锁门槛。规则是「上一档基础成本的一半」，
+  所以**加新档位不用改这里**——千万不要改成「自身成本的倍数」，档位一多最后一档会永远看不到。
 
 ## 已知边界（阶段 0 故意不做）
 

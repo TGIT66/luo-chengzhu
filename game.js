@@ -13,30 +13,51 @@
 
   var SAVE_KEY = 'lcz_save_v1';
   var AUTOSAVE_MS = 10000;      // 自动存档间隔
-  var OFFLINE_EFFICIENCY = 0.5; // 离线收益效率（50%）
-  var OFFLINE_CAP_HOURS = 8;    // 离线收益上限（小时）
+  var OFFLINE_EFFICIENCY = 1;   // 离线收益效率（100%）
   var RENDER_MS = 100;          // 界面刷新节流（毫秒）
+
+  // 离线时长档位。第 0 档是默认，之后每档花掉「当前基因元能的固定百分比」来提升。
+  //   unlock  = 开启该档所需的当前基因元能（逐档抬高）
+  //   costPct = 消耗当前基因元能的比例
+  var OFFLINE_TIERS = [
+    { hours:6,  unlock:0,    costPct:0    },
+    { hours:8,  unlock:1e4,  costPct:0.25 },
+    { hours:10, unlock:1e6,  costPct:0.30 },
+    { hours:12, unlock:1e8,  costPct:0.35 },
+    { hours:16, unlock:1e10, costPct:0.40 },
+    { hours:20, unlock:1e12, costPct:0.45 },
+    { hours:24, unlock:1e14, costPct:0.50 }
+  ];
 
   // 生产单位：成本 = baseCost * costMult^已拥有数量
   var PRODUCERS = [
-    { id:'tudi',    name:'武者学徒',   icon:'🥋', desc:'武馆里最能吃苦的一批人', baseCost:15,    costMult:1.15, rate:0.1 },
-    { id:'nianshi', name:'精神念师',   icon:'🧠', desc:'以精神念力压缩、提纯能量', baseCost:120,   costMult:1.15, rate:1.2 },
-    { id:'tunshou', name:'吞噬兽',     icon:'🐾', desc:'来自异星的凶兽，本能即吞噬', baseCost:1400,  costMult:1.15, rate:9   },
-    { id:'feichuan',name:'陨墨星舰队', icon:'🛸', desc:'横扫星域，按恒星单位收割',   baseCost:18000, costMult:1.15, rate:65  }
+    { id:'nianli',  name:'念力觉醒',       icon:'🧠', desc:'觉醒念力成为恶霸的第一步', baseCost:15,         costMult:1.15, rate:0.1 },
+    { id:'xinnian', name:'信念驱动',       icon:'🛗', desc:'电梯房的执念',             baseCost:150,        costMult:1.15, rate:1 },
+    { id:'zhineng', name:'智能生命',       icon:'🤖', desc:'巴巴塔的半生陪伴',         baseCost:1700,       costMult:1.15, rate:12 },
+    { id:'jinjiao', name:'金角巨兽',       icon:'🐲', desc:'夺舍后才是本体',           baseCost:20000,      costMult:1.15, rate:150 },
+    { id:'yichan',  name:'不朽遗产',       icon:'💎', desc:'天使投资人',               baseCost:250000,     costMult:1.15, rate:2000 },
+    { id:'tiancai', name:'虚拟宇宙天才战', icon:'🏆', desc:'天才只是见我的门槛',       baseCost:3000000,    costMult:1.15, rate:25000 },
+    { id:'xueluo',  name:'血洛世界',       icon:'🩸', desc:'荣获恶霸之名',             baseCost:40000000,   costMult:1.15, rate:350000 },
+    { id:'hundun',  name:'混沌城',         icon:'🏯', desc:'宇宙之主的欣赏',           baseCost:500000000,  costMult:1.15, rate:5000000 },
+    { id:'yuwai',   name:'域外战场',       icon:'⚔️', desc:'成就刀河王威名',           baseCost:7000000000, costMult:1.15, rate:80000000 }
   ];
 
   // 升级：type = clickAdd / clickMult / globalMult
   var UPGRADES = [
-    { id:'quan',     name:'拳力淬炼', icon:'👊', type:'clickAdd',   baseCost:25,    costMult:1.9, max:Infinity,
+    { id:'quan',      name:'拳力淬炼',       icon:'👊', type:'clickAdd',   baseCost:25,      costMult:1.9, max:Infinity,
       desc:function (lv) { return '吞噬之力 +' + (lv + 1) + '（每级叠加）'; } },
-    { id:'leishen',  name:'雷神传承', icon:'⚡', type:'clickMult',  baseCost:500,   costMult:1,   max:1, value:2,
+    { id:'jiuchong',  name:'九重雷刀',       icon:'🗡️', type:'clickMult',  baseCost:500,     costMult:1,   max:1, value:2,
       desc:function () { return '点击吞噬效果 ×2'; } },
-    { id:'jiyin',    name:'基因药剂', icon:'🧪', type:'globalMult', baseCost:2500,  costMult:1,   max:1, value:2,
+    { id:'mnya',      name:'木芽晶和柳木心', icon:'🌱', type:'globalMult', baseCost:2500,    costMult:1,   max:1, value:1.5,
+      desc:function () { return '所有自动产出 ×1.5'; } },
+    { id:'heishen',   name:'黑神套装',       icon:'🛡️', type:'clickMult',  baseCost:12000,   costMult:1,   max:1, value:2,
+      desc:function () { return '点击吞噬效果 ×2'; } },
+    { id:'duntian',   name:'遁天梭',         icon:'🛸', type:'globalMult', baseCost:60000,   costMult:1,   max:1, value:1.5,
+      desc:function () { return '所有自动产出 ×1.5'; } },
+    { id:'xuniverse', name:'虚拟宇宙网络',   icon:'🌐', type:'globalMult', baseCost:300000,  costMult:1,   max:1, value:2,
       desc:function () { return '所有自动产出 ×2'; } },
-    { id:'jiuchong', name:'九重雷刀', icon:'🗡️', type:'clickMult',  baseCost:9000,  costMult:1,   max:1, value:3,
-      desc:function () { return '点击吞噬效果 ×3'; } },
-    { id:'jingshen', name:'精神网络', icon:'🌐', type:'globalMult', baseCost:60000, costMult:1,   max:1, value:3,
-      desc:function () { return '所有自动产出 ×3'; } }
+    { id:'yanshen',   name:'衍神兵',         icon:'🔱', type:'clickMult',  baseCost:1500000, costMult:1,   max:1, value:3,
+      desc:function () { return '点击吞噬效果 ×3'; } }
   ];
 
   // 境界：按「累计获得」的基因能量解锁。
@@ -102,11 +123,14 @@
     var now = Date.now();
     return {
       v: 1,
-      energy: 0,        // 当前基因能量
+      energy: 0,        // 当前基因元能
       totalEnergy: 0,   // 累计获得（决定境界）
+      manualEnergy: 0,  // 累计点击产出
+      autoEnergy: 0,    // 累计自动产出（含离线收益）
       clicks: 0,
       producers: producers,
       upgrades: {},
+      offlineTier: 0,   // 离线时长档位（见 OFFLINE_TIERS）
       startedAt: now,
       lastSeen: now
     };
@@ -114,6 +138,7 @@
 
   var state = freshState();
   var ui = {};
+  var lastRealmIdx = -1;   // 只在境界变化时切换高亮，避免每帧刷 DOM
 
   /* ==================================================================
    *  数值计算
@@ -160,6 +185,33 @@
     return (state.upgrades[u.id] || 0) >= u.max;
   }
 
+  function offlineTier() {
+    var t = state.offlineTier || 0;
+    if (!isFinite(t) || t < 0) { t = 0; }
+    if (t > OFFLINE_TIERS.length - 1) { t = OFFLINE_TIERS.length - 1; }
+    return t;
+  }
+
+  function offlineCapHours() {
+    return OFFLINE_TIERS[offlineTier()].hours;
+  }
+
+  function offlineNextTier() {
+    return OFFLINE_TIERS[offlineTier() + 1] || null;
+  }
+
+  // 成本 = 当前基因元能 × 固定百分比，所以永远是「花掉手头的一部分」
+  function offlineCost(next) {
+    return Math.ceil(state.energy * next.costPct);
+  }
+
+  // 渐进解锁门槛：第 0 项看自身基础成本的一半，
+  // 之后每档看「上一档基础成本的一半」——也就是攒到上一档一半钱时，下一档就露头。
+  // （不要用「自身成本 × 比例」，档位一多，最后一档会变得几乎永远看不见。）
+  function revealAt(list, i) {
+    return (i <= 0 ? list[0].baseCost : list[i - 1].baseCost) * 0.5;
+  }
+
   function realmIndex() {
     var idx = 0;
     for (var i = 0; i < REALMS.length; i++) {
@@ -168,9 +220,15 @@
     return idx;
   }
 
-  function addEnergy(amount) {
+  // source 传 'click' 记入点击产出，其余（自动产出、离线收益）都记入自动产出
+  function addEnergy(amount, source) {
     state.energy += amount;
     state.totalEnergy += amount;
+    if (source === 'click') {
+      state.manualEnergy += amount;
+    } else {
+      state.autoEnergy += amount;
+    }
   }
 
   /* ==================================================================
@@ -179,7 +237,7 @@
 
   function devour() {
     var gain = getClickPower();
-    addEnergy(gain);
+    addEnergy(gain, 'click');
     state.clicks++;
     floatText('+' + fmt(gain));
     render();
@@ -200,6 +258,21 @@
     state.energy -= cost;
     state.upgrades[u.id] = (state.upgrades[u.id] || 0) + 1;
     toast('已获得：' + u.name);
+    render();
+  }
+
+  function buyOfflineTier() {
+    var next = offlineNextTier();
+    if (!next) { return; }
+    if (state.energy < next.unlock) {
+      toast('需要 ' + fmt(next.unlock) + ' 基因元能才能开启下一档');
+      return;
+    }
+    var cost = offlineCost(next);
+    if (state.energy < cost) { return; }
+    state.energy -= cost;
+    state.offlineTier = offlineTier() + 1;
+    toast('离线时长提升至 ' + next.hours + ' 小时');
     render();
   }
 
@@ -225,7 +298,7 @@
 
         var btn = el('button', 'buy-btn');
         btn.type = 'button';
-        btn.appendChild(el('span', 'buy-label', '招募'));
+        btn.appendChild(el('span', 'buy-label', '提升'));
         var cost = el('span', 'buy-cost', '');
         btn.appendChild(cost);
         btn.addEventListener('click', function () { buyProducer(p); });
@@ -272,6 +345,55 @@
     }
   }
 
+  function buildOffline() {
+    var box = ui.offlineList;
+    box.innerHTML = '';
+    var row = el('div', 'card');
+    var main = el('div', 'card-main');
+    var title = el('div', 'card-title');
+    title.appendChild(el('span', 'card-name', '离线时长'));
+    var lv = el('span', 'card-owned', '');
+    title.appendChild(lv);
+    var desc = el('div', 'card-desc', '');
+    var sub = el('div', 'card-rate', '');
+    main.appendChild(title);
+    main.appendChild(desc);
+    main.appendChild(sub);
+
+    var btn = el('button', 'buy-btn');
+    btn.type = 'button';
+    btn.appendChild(el('span', 'buy-label', '提升'));
+    var cost = el('span', 'buy-cost', '');
+    btn.appendChild(cost);
+    btn.addEventListener('click', buyOfflineTier);
+
+    row.appendChild(el('div', 'card-icon', '🕐'));
+    row.appendChild(main);
+    row.appendChild(btn);
+    box.appendChild(row);
+
+    ui.offlineRow = { row: row, lv: lv, desc: desc, sub: sub, btn: btn, cost: cost };
+  }
+
+  // 境界一览：左侧序号，右侧境界名称 + 阈值
+  function buildRealmList() {
+    var box = ui.realmList;
+    box.innerHTML = '';
+    for (var i = 0; i < REALMS.length; i++) {
+      var row = el('div', 'realm-item');
+      row.appendChild(el('span', 'realm-idx', String(i + 1)));
+      var right = el('span', 'realm-item-right');
+      right.appendChild(el('span', 'realm-item-name', REALMS[i].name));
+      right.appendChild(el('span', 'realm-item-at', fmt(REALMS[i].at)));
+      row.appendChild(right);
+      box.appendChild(row);
+      REALMS[i]._row = row;
+    }
+  }
+
+  function openRealmModal() { ui.realmModal.classList.remove('hidden'); }
+  function closeRealmModal() { ui.realmModal.classList.add('hidden'); }
+
   function render() {
     var rate = getRate();
     ui.energy.textContent = fmt(state.energy);
@@ -280,6 +402,13 @@
 
     var ri = realmIndex();
     ui.realm.textContent = REALMS[ri].name;
+    if (ri !== lastRealmIdx) {
+      if (lastRealmIdx >= 0 && REALMS[lastRealmIdx]._row) {
+        REALMS[lastRealmIdx]._row.classList.remove('current');
+      }
+      if (REALMS[ri]._row) { REALMS[ri]._row.classList.add('current'); }
+      lastRealmIdx = ri;
+    }
     var next = REALMS[ri + 1];
     if (next) {
       var from = REALMS[ri].at;
@@ -297,7 +426,7 @@
       var p = PRODUCERS[i];
       var owned = state.producers[p.id] || 0;
       var cost = producerCost(p);
-      var visible = i === 0 || state.totalEnergy >= p.baseCost * 0.4;
+      var visible = i === 0 || state.totalEnergy >= revealAt(PRODUCERS, i);
       p._row.style.display = visible ? '' : 'none';
       if (!visible) { continue; }
       p._owned.textContent = '×' + owned;
@@ -311,7 +440,7 @@
 
     for (var j = 0; j < UPGRADES.length; j++) {
       var u = UPGRADES[j];
-      var visible2 = state.totalEnergy >= u.baseCost * 0.4;
+      var visible2 = state.totalEnergy >= revealAt(UPGRADES, j);
       u._row.style.display = visible2 ? '' : 'none';
       if (!visible2) { continue; }
       var lv = state.upgrades[u.id] || 0;
@@ -324,6 +453,41 @@
       u._btn.classList.toggle('can', !maxed && state.energy >= uCost);
       u._row.classList.toggle('done', maxed);
     }
+
+    // 离线时长档位
+    var o = ui.offlineRow;
+    var tIdx = offlineTier();
+    var curT = OFFLINE_TIERS[tIdx];
+    var nxtT = offlineNextTier();
+    var effPct = Math.round(OFFLINE_EFFICIENCY * 100);
+    o.lv.textContent = 'Lv.' + (tIdx + 1);
+    o.desc.textContent = '离线收益效率 ' + effPct + '%';
+    if (!nxtT) {
+      o.sub.textContent = '已满级：最多结算 ' + curT.hours + ' 小时';
+      o.cost.textContent = '已满级';
+      o.btn.disabled = true;
+      o.btn.classList.remove('can');
+      o.row.classList.add('done');
+    } else {
+      var oCost = offlineCost(nxtT);
+      var oUnlocked = state.energy >= nxtT.unlock;
+      o.sub.textContent = '当前 ' + curT.hours + ' 小时 → 下一档 ' + nxtT.hours + ' 小时';
+      o.cost.textContent = oUnlocked ? fmt(oCost) : fmt(nxtT.unlock) + ' 开启';
+      o.btn.disabled = !oUnlocked || state.energy < oCost;
+      o.btn.classList.toggle('can', oUnlocked && state.energy >= oCost);
+      o.row.classList.remove('done');
+    }
+    ui.footOffline.textContent = '离线收益：最多 ' + curT.hours + ' 小时，效率 ' + effPct + '%';
+
+    // 产出统计（统计的是累计「获得量」，花钱不会让它减少）
+    var man = state.manualEnergy || 0;
+    var aut = state.autoEnergy || 0;
+    var sum = man + aut;
+    ui.statManual.textContent = fmt(man);
+    ui.statAuto.textContent = fmt(aut);
+    ui.statTotal.textContent = fmt(sum);
+    ui.statManualPct.textContent = sum > 0 ? (man / sum * 100).toFixed(1) + '%' : '';
+    ui.statAutoPct.textContent = sum > 0 ? (aut / sum * 100).toFixed(1) + '%' : '';
   }
 
   function floatText(text) {
@@ -343,8 +507,8 @@
 
   function showOffline(seconds, gain) {
     ui.offlineText.textContent =
-      '你离开了 ' + fmtDuration(seconds) + '，麾下战力自行吞噬，' +
-      '带回 ' + fmt(gain) + ' 基因能量。';
+      '你离开了 ' + fmtDuration(seconds) + '，你的战力自行吞噬，' +
+      '带回 ' + fmt(gain) + ' 基因元能。';
     ui.offlineModal.classList.remove('hidden');
   }
 
@@ -378,7 +542,7 @@
     var seconds = (now - last) / 1000;
     state.lastSeen = now;
     if (!(seconds > 1)) { return; }
-    var capped = Math.min(seconds, OFFLINE_CAP_HOURS * 3600);
+    var capped = Math.min(seconds, offlineCapHours() * 3600);
     var gain = getRate() * capped * OFFLINE_EFFICIENCY;
     if (gain <= 0) { return; }
     addEnergy(gain);
@@ -400,17 +564,64 @@
     }
   }
 
+  // v0.1.x → v0.2.0 存档迁移：旧 id 按档位/效果对应关系搬到新 id
+  var LEGACY_PRODUCER_IDS = ['tudi', 'nianshi', 'tunshou', 'feichuan'];
+  var LEGACY_UPGRADE_IDS = {
+    quan: 'quan',
+    leishen: 'jiuchong',
+    jiyin: 'mnya',
+    jiuchong: 'yanshen',
+    jingshen: 'xuniverse'
+  };
+
   function parseSave(raw) {
     var data = JSON.parse(raw);
     var base = freshState();
     var merged = Object.assign(base, data);
+
+    // 生产单位：旧 id 按档位顺序搬，新 id 直接读
+    var src = data.producers || {};
     var prod = {};
-    for (var i = 0; i < PRODUCERS.length; i++) {
-      var id = PRODUCERS[i].id;
-      prod[id] = (data.producers && Number(data.producers[id])) || 0;
+    var i;
+    for (i = 0; i < PRODUCERS.length; i++) { prod[PRODUCERS[i].id] = 0; }
+    for (i = 0; i < PRODUCERS.length; i++) {
+      var newId = PRODUCERS[i].id;
+      var legacyId = LEGACY_PRODUCER_IDS[i];
+      if (legacyId && src[legacyId] != null) { prod[newId] += Number(src[legacyId]) || 0; }
+      if (src[newId] != null) { prod[newId] += Number(src[newId]) || 0; }
     }
     merged.producers = prod;
-    merged.upgrades = Object.assign({}, data.upgrades || {});
+
+    // 升级：旧 id 按对应关系搬
+    var srcUp = data.upgrades || {};
+    var up = {};
+    for (var k in srcUp) {
+      if (!Object.prototype.hasOwnProperty.call(srcUp, k)) { continue; }
+      var target = LEGACY_UPGRADE_IDS[k] || k;
+      up[target] = (up[target] || 0) + (Number(srcUp[k]) || 0);
+    }
+    merged.upgrades = up;
+
+    // 离线档位兜底
+    if (typeof merged.offlineTier !== 'number' || !isFinite(merged.offlineTier) || merged.offlineTier < 0) {
+      merged.offlineTier = 0;
+    }
+    if (merged.offlineTier > OFFLINE_TIERS.length - 1) {
+      merged.offlineTier = OFFLINE_TIERS.length - 1;
+    }
+
+    // 产出统计兜底：v0.3.0 之前的存档没记过这两项。
+    // 注意要判断原始存档 data，不能判断 merged——
+    // freshState() 里已经带了 manualEnergy:0，会把「字段缺失」盖住。
+    // 回填规则：按「每次点击至少 +1」取下限，并保证「总和 = 累计获得」自洽；
+    // 老存档的点击/自动拆分只是近似值，从本版本起才精确。
+    if (typeof data.manualEnergy !== 'number' || !isFinite(data.manualEnergy) || data.manualEnergy < 0) {
+      merged.manualEnergy = Math.min(Number(data.clicks) || 0, Number(data.totalEnergy) || 0);
+    }
+    if (typeof data.autoEnergy !== 'number' || !isFinite(data.autoEnergy) || data.autoEnergy < 0) {
+      merged.autoEnergy = Math.max(0, (Number(data.totalEnergy) || 0) - merged.manualEnergy);
+    }
+
     return merged;
   }
 
@@ -509,6 +720,17 @@
     ui.devour = $('devour');
     ui.producers = $('producers');
     ui.upgrades = $('upgrades');
+    ui.offlineList = $('offline-list');
+    ui.footOffline = $('foot-offline');
+    ui.statManual = $('stat-manual');
+    ui.statAuto = $('stat-auto');
+    ui.statTotal = $('stat-total');
+    ui.statManualPct = $('stat-manual-pct');
+    ui.statAutoPct = $('stat-auto-pct');
+    ui.realmRow = $('realm-row');
+    ui.realmModal = $('realm-modal');
+    ui.realmList = $('realm-list');
+    ui.realmClose = $('realm-close');
     ui.offlineModal = $('offline-modal');
     ui.offlineText = $('offline-text');
     ui.saveModal = $('save-modal');
@@ -527,6 +749,13 @@
     $('btn-copy').addEventListener('click', copySave);
     $('btn-reset').addEventListener('click', resetGame);
     $('offline-ok').addEventListener('click', function () { ui.offlineModal.classList.add('hidden'); });
+
+    // 境界一览：点境界区域打开，点弹窗空白处或底部提示关闭
+    ui.realmRow.addEventListener('click', openRealmModal);
+    ui.realmModal.addEventListener('click', function (e) {
+      if (e.target === ui.realmModal) { closeRealmModal(); }
+    });
+    ui.realmClose.addEventListener('click', closeRealmModal);
 
     document.addEventListener('visibilitychange', function () {
       if (document.hidden) {
@@ -556,6 +785,8 @@
     cacheDom();
     buildProducers();
     buildUpgrades();
+    buildOffline();
+    buildRealmList();
     bindEvents();
     loadGame();
     applyOffline();

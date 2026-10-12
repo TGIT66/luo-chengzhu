@@ -4,7 +4,7 @@
  *       把下面的 CACHE 版本号 +1（例如 lcz-v1 -> lcz-v2），
  *       否则手机浏览器会一直用旧缓存。
  */
-var CACHE = 'lcz-v1';
+var CACHE = 'lcz-v4';
 
 var ASSETS = [
   './',

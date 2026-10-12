@@ -24,15 +24,16 @@
       <h1>叫我罗城主</h1>
       <button id="btn-save" class="icon-btn" aria-label="打开存档面板">💾</button>
     </div>
-    <div class="realm-row">
+    <div class="realm-row" id="realm-row" title="点击查看境界一览">
       <span class="realm-badge" id="realm">武徒</span>
       <span class="realm-next" id="realm-next"></span>
+      <span class="realm-more">一览 ›</span>
     </div>
     <div class="bar"><div class="bar-fill" id="realm-bar"></div></div>
   </header>
 
   <section class="hero">
-    <div class="energy-label">基因能量</div>
+    <div class="energy-label">基因元能</div>
     <div class="energy" id="energy">0</div>
     <div class="energy-rate" id="rate">+0 / 秒</div>
     <button id="devour" class="devour" aria-label="吞噬">
@@ -42,7 +43,7 @@
   </section>
 
   <section class="panel">
-    <h2>麾下战力</h2>
+    <h2>战力提升</h2>
     <div id="producers" class="list"></div>
   </section>
 
@@ -51,9 +52,32 @@
     <div id="upgrades" class="list"></div>
   </section>
 
+  <section class="panel">
+    <h2>离线收益</h2>
+    <div id="offline-list" class="list"></div>
+  </section>
+
+  <section class="panel">
+    <h2>产出统计</h2>
+    <div class="stats">
+      <div class="stat">
+        <span class="stat-label">累计点击产出</span>
+        <span class="stat-right"><b class="stat-value" id="stat-manual">0</b><i class="stat-pct" id="stat-manual-pct"></i></span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">累计自动产出</span>
+        <span class="stat-right"><b class="stat-value" id="stat-auto">0</b><i class="stat-pct" id="stat-auto-pct"></i></span>
+      </div>
+      <div class="stat total">
+        <span class="stat-label">累计产出总和</span>
+        <span class="stat-right"><b class="stat-value" id="stat-total">0</b></span>
+      </div>
+    </div>
+  </section>
+
   <footer class="foot">
-    <span>阶段 0 原型</span>
-    <span>离线收益：最多 8 小时，效率 50%</span>
+    <span>v0.3.0</span>
+    <span id="foot-offline">离线收益：最多 6 小时，效率 100%</span>
   </footer>
 
 </div>
@@ -83,6 +107,15 @@
       <button class="danger" id="btn-reset">重置游戏</button>
       <button class="primary" id="btn-close-save">关闭</button>
     </div>
+  </div>
+</div>
+
+<!-- 境界一览 -->
+<div class="modal hidden" id="realm-modal">
+  <div class="modal-box">
+    <h3>境界一览</h3>
+    <div id="realm-list" class="realm-list"></div>
+    <p class="hint" id="realm-close">点击空白处关闭</p>
   </div>
 </div>
 
