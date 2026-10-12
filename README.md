@@ -12,9 +12,21 @@ luo-chengzhu/
 ├─ game.js         全部游戏逻辑（数值都在文件顶部「配置区」）
 ├─ manifest.json   PWA 清单，让 Chrome 认它是可安装应用
 ├─ sw.js           Service Worker，负责离线缓存
+├─ CHANGELOG.md    ★ 更新日志：每次改动都记一条，并给版本号
+├─ README.md       本文件
 ├─ icons/          图标（192 / 512）
-└─ docs/           设计文档（PRD）
+├─ docs/           设计文档（PRD）
+└─ tools/          辅助脚本（生成图标、冒烟测试、导出 PRD）
 ```
+
+## 改代码之前先看这个
+
+**每次改动都要做两件事**，缺一个就会出问题：
+
+1. 在 [`CHANGELOG.md`](CHANGELOG.md) 里加一条记录，给个版本号
+2. 把 `sw.js` 里 `CACHE = 'lcz-vN'` 的 N **+1**
+
+第 2 条最容易被忘。忘了的表现是"代码明明改了，手机上还是老样子"。
 
 ## 本地预览
 
