@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>叫我罗城主</title>
+<meta name="description" content="个人离线放置增量游戏原型（同人练习作）">
+<meta name="theme-color" content="#05070d">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="罗城主">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+
+  <header class="top">
+    <div class="title-row">
+      <h1>叫我罗城主</h1>
+      <button id="btn-save" class="icon-btn" aria-label="打开存档面板">💾</button>
+    </div>
+    <div class="realm-row">
+      <span class="realm-badge" id="realm">武徒</span>
+      <span class="realm-next" id="realm-next"></span>
+    </div>
+    <div class="bar"><div class="bar-fill" id="realm-bar"></div></div>
+  </header>
+
+  <section class="hero">
+    <div class="energy-label">基因能量</div>
+    <div class="energy" id="energy">0</div>
+    <div class="energy-rate" id="rate">+0 / 秒</div>
+    <button id="devour" class="devour" aria-label="吞噬">
+      <span class="devour-title">吞 噬</span>
+      <span class="devour-sub">每次 +<b id="click-power">1</b></span>
+    </button>
+  </section>
+
+  <section class="panel">
+    <h2>麾下战力</h2>
+    <div id="producers" class="list"></div>
+  </section>
+
+  <section class="panel">
+    <h2>功法与秘宝</h2>
+    <div id="upgrades" class="list"></div>
+  </section>
+
+  <footer class="foot">
+    <span>阶段 0 原型</span>
+    <span>离线收益：最多 8 小时，效率 50%</span>
+  </footer>
+
+</div>
+
+<!-- 离线收益弹窗 -->
+<div class="modal hidden" id="offline-modal">
+  <div class="modal-box">
+    <h3>修行归来</h3>
+    <p id="offline-text"></p>
+    <button class="primary" id="offline-ok">收下</button>
+  </div>
+</div>
+
+<!-- 存档弹窗 -->
+<div class="modal hidden" id="save-modal">
+  <div class="modal-box">
+    <h3>存档</h3>
+    <p class="hint">导出：复制下方存档码，粘贴到手机备忘录保存。<br>导入：把存档码粘贴进来，点「导入」。</p>
+    <textarea id="save-text" spellcheck="false" autocomplete="off" placeholder="存档码会显示在这里"></textarea>
+    <p class="hint" id="save-hint"></p>
+    <div class="modal-actions">
+      <button id="btn-export">导出</button>
+      <button id="btn-copy">复制</button>
+      <button id="btn-import">导入</button>
+    </div>
+    <div class="modal-actions">
+      <button class="danger" id="btn-reset">重置游戏</button>
+      <button class="primary" id="btn-close-save">关闭</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script src="game.js"></script>
+</body>
+</html>
